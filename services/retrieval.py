@@ -2,9 +2,9 @@ from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 from core.logging import logger
 from core.performance import monitor_performance
-from services.content_loader import content_loader
+from services.content_loader import get_content_loader
 from services.embedding_generator import get_embedding_generator
-from services.vector_store import vector_store
+from services.vector_store import get_vector_store
 
 class RetrievalService:
     """
@@ -12,8 +12,8 @@ class RetrievalService:
     """
 
     def __init__(self):
-        self.content_loader = content_loader
-        self.vector_store = vector_store
+        self.content_loader = None
+        self.vector_store = None
 
     @monitor_performance
     def initialize_store(self):
@@ -22,14 +22,14 @@ class RetrievalService:
         """
         logger.info("Initializing vector store with book content")
 
-        # Load content from the book
-        content = self.content_loader.load_content()
+        # Load content from the book using lazy service
+        content = get_content_loader().load_content()
 
-        # Add content to vector store
-        self.vector_store.add_content(content)
+        # Add content to vector store using lazy service
+        get_vector_store().add_content(content)
 
-        # Save the vector store
-        self.vector_store.save()
+        # Save the vector store using lazy service
+        get_vector_store().save()
 
         logger.info(f"Vector store initialized with {len(content)} content chunks")
 
@@ -95,11 +95,11 @@ class RetrievalService:
         """
         logger.info(f"Performing retrieval from full store, top_k: {top_k}")
 
-        # Load vector store if it hasn't been loaded yet
-        self.vector_store.load()
+        # Load vector store if it hasn't been loaded yet using lazy service
+        get_vector_store().load()
 
-        # Find similar content
-        results = self.vector_store.find_similar_texts(query, top_k)
+        # Find similar content using lazy service
+        results = get_vector_store().find_similar_texts(query, top_k)
 
         # Format results
         formatted_results = []
