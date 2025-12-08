@@ -3,9 +3,9 @@ from fastapi.testclient import TestClient
 from main import app
 from api.chatbot import QueryRequest
 from unittest.mock import patch, MagicMock
-from services.retrieval import retrieval_service
-from services.content_loader import content_loader
-from services.vector_store import vector_store
+from services.retrieval import get_retrieval_service
+from services.content_loader import get_content_loader
+from services.vector_store import get_vector_store
 
 
 # Create a test client for the FastAPI app
@@ -17,7 +17,7 @@ def test_query_endpoint_success():
     Test the /query endpoint with a successful response
     """
     # Mock the retrieval service to return known content
-    with patch.object(retrieval_service, 'retrieve_relevant_content') as mock_retrieve:
+    with patch.object(get_retrieval_service(), 'retrieve_relevant_content') as mock_retrieve:
         mock_retrieve.return_value = [
             {
                 'id': 'test_id_1',
@@ -51,7 +51,7 @@ def test_query_endpoint_no_content():
     Test the /query endpoint when no relevant content is found
     """
     # Mock the retrieval service to return no content
-    with patch.object(retrieval_service, 'retrieve_relevant_content') as mock_retrieve:
+    with patch.object(get_retrieval_service(), 'retrieve_relevant_content') as mock_retrieve:
         mock_retrieve.return_value = []
 
         # Send a test request to the query endpoint
@@ -76,7 +76,7 @@ def test_query_endpoint_with_selected_text():
     Test the /query endpoint with selected text parameter
     """
     # Mock the retrieval service to return known content
-    with patch.object(retrieval_service, 'retrieve_relevant_content') as mock_retrieve:
+    with patch.object(get_retrieval_service(), 'retrieve_relevant_content') as mock_retrieve:
         mock_retrieve.return_value = [
             {
                 'id': 'selected_id',

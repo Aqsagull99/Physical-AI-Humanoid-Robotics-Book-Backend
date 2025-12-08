@@ -50,7 +50,7 @@ def test_content_loader():
     print("\nTesting Content Loader...")
 
     try:
-        from services.content_loader import content_loader
+        from services.content_loader import get_content_loader
         print("✅ Content loader imported successfully")
     except ImportError as e:
         print(f"❌ Failed to import content loader: {e}")
@@ -58,7 +58,7 @@ def test_content_loader():
 
     try:
         # Load content
-        content = content_loader.load_content()
+        content = get_content_loader().load_content()
         print(f"✅ Loaded {len(content)} content chunks")
 
         if len(content) == 0:
@@ -115,12 +115,12 @@ def test_embedding_generator():
     print("\nTesting Embedding Generator...")
 
     try:
-        from services.embedding_generator import embedding_generator
+        from services.embedding_generator import get_embedding_generator
         print("✅ Embedding generator imported successfully")
 
         # Try to generate a simple embedding (will fail without sentence-transformers)
         try:
-            embedding = embedding_generator.generate_embedding("test")
+            embedding = get_embedding_generator().generate_embedding("test")
             print(f"✅ Embedding generated successfully: {len(embedding)} dimensions")
             return True
         except Exception as e:

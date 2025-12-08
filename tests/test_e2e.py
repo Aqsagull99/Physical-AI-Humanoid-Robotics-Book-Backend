@@ -3,8 +3,8 @@ import os
 from fastapi.testclient import TestClient
 from main import app
 from unittest.mock import patch, MagicMock
-from services.retrieval import retrieval_service
-from services.content_loader import content_loader
+from services.retrieval import get_retrieval_service
+from services.content_loader import get_content_loader
 
 
 # Create a test client for the FastAPI app
@@ -16,7 +16,7 @@ def test_end_to_end_query_flow():
     End-to-end test to verify the query flow and grounding in book content
     """
     # Mock the retrieval service to return known content
-    with patch.object(retrieval_service, 'retrieve_relevant_content') as mock_retrieve:
+    with patch.object(get_retrieval_service(), 'retrieve_relevant_content') as mock_retrieve:
         # Mock content that is clearly grounded in robotics/book content
         mock_retrieve.return_value = [
             {
@@ -65,7 +65,7 @@ def test_end_to_end_ingestion_flow():
     End-to-end test to verify the ingestion flow
     """
     # Mock the content loader to return test content
-    with patch.object(content_loader, 'load_content') as mock_load_content:
+    with patch.object(get_content_loader(), 'load_content') as mock_load_content:
         test_content = [
             {
                 'id': 'test_id_1',
@@ -116,7 +116,7 @@ def test_content_grounding_percentage():
     This is a simplified test - in a real implementation, you'd have more sophisticated grounding checks
     """
     # Mock content that is clearly related to the query
-    with patch.object(retrieval_service, 'retrieve_relevant_content') as mock_retrieve:
+    with patch.object(get_retrieval_service(), 'retrieve_relevant_content') as mock_retrieve:
         mock_retrieve.return_value = [
             {
                 'id': 'test_id_1',

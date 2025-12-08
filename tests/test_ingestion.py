@@ -2,8 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from main import app
 from unittest.mock import patch, MagicMock
-from services.retrieval import retrieval_service
-from services.content_loader import content_loader
+from services.retrieval import get_retrieval_service
+from services.content_loader import get_content_loader
 
 
 # Create a test client for the FastAPI app
@@ -15,7 +15,7 @@ def test_ingest_endpoint_success():
     Test the /admin/ingest endpoint with a successful response
     """
     # Mock the retrieval service initialize_store method
-    with patch.object(retrieval_service, 'initialize_store') as mock_initialize:
+    with patch.object(get_retrieval_service(), 'initialize_store') as mock_initialize:
         mock_initialize.return_value = None  # initialize_store returns None
 
         # Send a test request to the ingest endpoint
@@ -54,7 +54,7 @@ def test_ingest_endpoint_exception_handling():
     Test the /admin/ingest endpoint handles exceptions properly
     """
     # Mock the retrieval service to raise an exception
-    with patch.object(retrieval_service, 'initialize_store') as mock_initialize:
+    with patch.object(get_retrieval_service(), 'initialize_store') as mock_initialize:
         mock_initialize.side_effect = Exception("Database connection failed")
 
         # Send a test request to the ingest endpoint
@@ -76,7 +76,7 @@ def test_content_loader_integration():
     Test the content loader integration with the ingestion process
     """
     # Mock the content loader to return test content
-    with patch.object(content_loader, 'load_content') as mock_load_content:
+    with patch.object(get_content_loader(), 'load_content') as mock_load_content:
         test_content = [
             {
                 'id': 'test_id_1',
@@ -89,7 +89,7 @@ def test_content_loader_integration():
         mock_load_content.return_value = test_content
 
         # Verify that the content loader returns the expected content
-        content = content_loader.load_content()
+        content = get_content_loader().load_content()
         assert len(content) == 1
         assert content[0]['id'] == 'test_id_1'
         assert 'robotics' in content[0]['content'].lower()
