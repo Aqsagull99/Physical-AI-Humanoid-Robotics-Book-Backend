@@ -6,8 +6,8 @@ from typing import List, Dict, Any, Optional
 import openai
 from core.logging import logger
 from core.config import settings
-from services.retrieval import retrieval_service
-from services.content_loader import content_loader
+from services.retrieval import get_retrieval_service
+from services.content_loader import get_content_loader
 
 router = APIRouter()
 
@@ -54,7 +54,7 @@ async def query_endpoint(request: QueryRequest, api_key_valid: bool = Depends(ve
 
     try:
         # Retrieve relevant content based on the query
-        relevant_content = retrieval_service.retrieve_relevant_content(
+        relevant_content = get_retrieval_service().retrieve_relevant_content(
             query=request.text,  # Changed from request.query to request.text
             top_k=request.top_k,
             selected_text=request.selected_text

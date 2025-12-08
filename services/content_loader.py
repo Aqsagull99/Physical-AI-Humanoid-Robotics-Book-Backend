@@ -199,5 +199,14 @@ class ContentLoader:
         """
         return self.content
 
-# Singleton instance
-content_loader = ContentLoader()
+# Lazy singleton instance
+_content_loader_instance = None
+
+def get_content_loader():
+    """
+    Get the content loader instance, creating it if it doesn't exist
+    """
+    global _content_loader_instance
+    if _content_loader_instance is None:
+        _content_loader_instance = ContentLoader()
+    return _content_loader_instance

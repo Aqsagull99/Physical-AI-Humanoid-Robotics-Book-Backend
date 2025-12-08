@@ -3,7 +3,7 @@ import numpy as np
 from core.logging import logger
 from core.performance import monitor_performance
 from services.content_loader import content_loader
-from services.embedding_generator import embedding_generator
+from services.embedding_generator import get_embedding_generator
 from services.vector_store import vector_store
 
 class RetrievalService:
@@ -56,10 +56,10 @@ class RetrievalService:
         logger.info("Performing retrieval from selected text only")
 
         # Generate embedding for the query
-        query_embedding = embedding_generator.generate_embedding(query)
+        query_embedding = get_embedding_generator().generate_embedding(query)
 
         # Generate embedding for the selected text
-        selected_embedding = embedding_generator.generate_embedding(selected_text)
+        selected_embedding = get_embedding_generator().generate_embedding(selected_text)
 
         # Calculate similarity between query and selected text
         # Cosine similarity
@@ -133,5 +133,14 @@ class RetrievalService:
 
         return sources
 
-# Singleton instance
-retrieval_service = RetrievalService()
+# Lazy singleton instance
+_retrieval_service_instance = None
+
+def get_retrieval_service():
+    """
+    Get the retrieval service instance, creating it if it doesn't exist
+    """
+    global _retrieval_service_instance
+    if _retrieval_service_instance is None:
+        _retrieval_service_instance = RetrievalService()
+    return _retrieval_service_instance

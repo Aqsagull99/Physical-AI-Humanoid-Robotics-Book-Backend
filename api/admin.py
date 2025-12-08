@@ -5,7 +5,8 @@ from typing import Optional
 import os
 from core.logging import logger
 from core.config import settings
-from services.retrieval import retrieval_service
+from services.retrieval import get_retrieval_service
+from services.vector_store import get_vector_store
 
 router = APIRouter()
 
@@ -47,7 +48,7 @@ async def ingest_content(api_key_valid: bool = Depends(verify_admin_api_key)):
 
     try:
         # Initialize the vector store with book content
-        retrieval_service.initialize_store()
+        get_retrieval_service().initialize_store()
 
         return {
             "status": "success",
@@ -67,11 +68,11 @@ async def refresh_embeddings(request: RefreshRequest, api_key_valid: bool = Depe
 
     try:
         # Initialize the vector store with book content
-        retrieval_service.initialize_store()
+        get_retrieval_service().initialize_store()
 
         # Get the number of content items loaded
         # We need to access the vector store to get the count
-        from services.vector_store import vector_store
+        vector_store = get_vector_store()
         # Since we don't have a direct count method, we'll return a success message
         return RefreshResponse(
             status="success",

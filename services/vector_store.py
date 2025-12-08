@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
 from core.logging import logger
 from core.config import settings
-from services.embedding_generator import embedding_generator
+from services.embedding_generator import get_embedding_generator
 
 # Try to import Qdrant, fallback to local storage if not available
 try:
@@ -79,7 +79,7 @@ class VectorStore:
 
             if self.collection_name not in collection_names:
                 # Get embedding dimension from the embedding generator
-                sample_embedding = embedding_generator.generate_embedding("sample text")
+                sample_embedding = get_embedding_generator().generate_embedding("sample text")
                 vector_size = len(sample_embedding)
 
                 # Create collection with specified vector size
@@ -130,7 +130,7 @@ class VectorStore:
         logger.info(f"Adding {len(content_list)} content items to vector store")
 
         texts = [item['content'] for item in content_list]
-        embeddings = embedding_generator.generate_embeddings(texts)
+        embeddings = get_embedding_generator().generate_embeddings(texts)
 
         metadata_list = [item.get('metadata', {}) for item in content_list]
         ids = [item.get('id', f"content_{i}") for i, item in enumerate(content_list)]
@@ -243,7 +243,7 @@ class VectorStore:
         """
         Find similar texts to the query string
         """
-        query_embedding = embedding_generator.generate_embedding(query)
+        query_embedding = get_embedding_generator().generate_embedding(query)
         return self.find_similar(query_embedding, top_k)
 
     def save(self, filename: str = "vector_store.pkl"):
@@ -307,5 +307,14 @@ class VectorStore:
             self.metadata = []
             self.ids = []
 
-# Singleton instance
-vector_store = VectorStore()
+# Lazy singleton instance
+_vector_store_instance = None
+
+def get_vector_store():
+    """
+    Get the vector store instance, creating it if it doesn't exist
+    """
+    global _vector_store_instance
+    if _vector_store_instance is None:
+        _vector_store_instance = VectorStore()
+    return _vector_store_instance
