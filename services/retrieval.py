@@ -16,7 +16,7 @@ class RetrievalService:
         self.vector_store = None
 
     @monitor_performance
-    def initialize_store(self):
+    async def initialize_store(self):
         """
         Initialize the vector store with book content
         """
@@ -26,7 +26,7 @@ class RetrievalService:
         content = get_content_loader().load_content()
 
         # Add content to vector store using lazy service
-        get_vector_store().add_content(content)
+        await get_vector_store().add_content(content)
 
         # Save the vector store using lazy service
         get_vector_store().save()
@@ -34,7 +34,7 @@ class RetrievalService:
         logger.info(f"Vector store initialized with {len(content)} content chunks")
 
     @monitor_performance
-    def retrieve_relevant_content(self, query: str, top_k: int = 5, selected_text: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def retrieve_relevant_content(self, query: str, top_k: int = 5, selected_text: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Retrieve relevant content based on the query
         If selected_text is provided, only search within that text
@@ -43,12 +43,12 @@ class RetrievalService:
 
         if selected_text:
             # If specific text is selected, only search within that text
-            return self._retrieve_from_selected_text(query, selected_text, top_k)
+            return await self._retrieve_from_selected_text(query, selected_text, top_k)
         else:
             # Search in the full vector store
-            return self._retrieve_from_full_store(query, top_k)
+            return await self._retrieve_from_full_store(query, top_k)
 
-    def _retrieve_from_selected_text(self, query: str, selected_text: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    async def _retrieve_from_selected_text(self, query: str, selected_text: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """
         Retrieve relevant content from the selected text only
         In selection-only mode, we focus the search on the selected text
@@ -89,7 +89,7 @@ class RetrievalService:
 
         return [result]
 
-    def _retrieve_from_full_store(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    async def _retrieve_from_full_store(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """
         Retrieve relevant content from the full vector store
         """
@@ -99,7 +99,7 @@ class RetrievalService:
         get_vector_store().load()
 
         # Find similar content using lazy service
-        results = get_vector_store().find_similar_texts(query, top_k)
+        results = await get_vector_store().find_similar_texts(query, top_k)
 
         # Format results
         formatted_results = []

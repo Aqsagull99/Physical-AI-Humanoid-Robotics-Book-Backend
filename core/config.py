@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     llm_model: str = os.getenv("LLM_MODEL", "gemini/gemini-pro")  # Default to Gemini
 
     # Content Configuration
-    book_content_path: str = os.getenv("BOOK_CONTENT_PATH", "../Robotic Book/docs/my_book_content")  # Point to my_book_content directory
+    book_content_path: str = os.getenv("BOOK_CONTENT_PATH", "../Robotic Book/docs")  # Point to docs directory
     embeddings_path: str = os.getenv("EMBEDDINGS_PATH", "./embeddings")
 
     # Vector Store Configuration

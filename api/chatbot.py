@@ -54,7 +54,7 @@ async def query_endpoint(request: QueryRequest, api_key_valid: bool = Depends(ve
 
     try:
         # Retrieve relevant content based on the query
-        relevant_content = get_retrieval_service().retrieve_relevant_content(
+        relevant_content = await get_retrieval_service().retrieve_relevant_content(
             query=request.text,  # Changed from request.query to request.text
             top_k=request.top_k,
             selected_text=request.selected_text

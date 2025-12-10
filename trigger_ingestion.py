@@ -92,3 +92,9 @@ if __name__ == "__main__":
         print("The book content should now be stored in Qdrant with all required fields.")
     else:
         print("\n❌ Content ingestion process failed.")
+
+
+
+
+
+

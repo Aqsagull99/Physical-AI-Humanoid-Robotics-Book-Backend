@@ -48,7 +48,7 @@ async def ingest_content(api_key_valid: bool = Depends(verify_admin_api_key)):
 
     try:
         # Initialize the vector store with book content
-        get_retrieval_service().initialize_store()
+        await get_retrieval_service().initialize_store()
 
         return {
             "status": "success",
@@ -68,7 +68,7 @@ async def refresh_embeddings(request: RefreshRequest, api_key_valid: bool = Depe
 
     try:
         # Initialize the vector store with book content
-        get_retrieval_service().initialize_store()
+        await get_retrieval_service().initialize_store()
 
         # Get the number of content items loaded
         # We need to access the vector store to get the count

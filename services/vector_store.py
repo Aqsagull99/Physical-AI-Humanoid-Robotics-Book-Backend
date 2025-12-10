@@ -97,7 +97,7 @@ class VectorStore:
             logger.error(f"Error creating Qdrant collection: {e}")
             raise
 
-    def add_embeddings(self, embeddings: List[np.ndarray], metadata: List[Dict[str, Any]], ids: List[str]):
+    async def add_embeddings(self, embeddings: List[np.ndarray], metadata: List[Dict[str, Any]], ids: List[str]):
         """
         Add embeddings to the vector store (Qdrant or local)
         """
@@ -123,7 +123,7 @@ class VectorStore:
             self.metadata.extend(metadata)
             self.ids.extend(ids)
 
-    def add_content(self, content_list: List[Dict[str, Any]]):
+    async def add_content(self, content_list: List[Dict[str, Any]]):
         """
         Add content to the vector store by generating embeddings
         """
@@ -135,56 +135,58 @@ class VectorStore:
         metadata_list = [item.get('metadata', {}) for item in content_list]
         ids = [item.get('id', f"content_{i}") for i, item in enumerate(content_list)]
 
-        self.add_embeddings(embeddings, metadata_list, ids)
+        await self.add_embeddings(embeddings, metadata_list, ids)
 
-    def find_similar(self, query_embedding: np.ndarray, top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+    async def find_similar(self, query_embedding: np.ndarray, top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
         """
         Find similar embeddings to the query embedding (Qdrant or local)
         """
         if self.qdrant_client is not None:
             # Search in Qdrant
             try:
-                # For newer Qdrant client versions
+                # For newer Qdrant client versions - synchronous call
                 results = self.qdrant_client.search(
                     collection_name=self.collection_name,
                     query_vector=query_embedding.tolist(),
                     limit=top_k,
                     with_payload=True
                 )
-            except AttributeError:
-                # Fallback for older Qdrant client versions
+            except Exception as e:
+                # Fallback for different Qdrant client versions or API
                 try:
+                    # Try the legacy search_points method
                     results = self.qdrant_client.search_points(
                         collection_name=self.collection_name,
-                        vector=query_embedding.tolist(),
+                        query_vector=query_embedding.tolist(),
                         limit=top_k,
                         with_payload=True
                     )
-                except AttributeError:
+                except Exception as e2:
                     # Try using scroll as a fallback (returns all records, not semantic search)
                     try:
                         # Get all points from the collection as a fallback
+                        # The scroll method returns (records, next_page_offset)
                         scroll_result = self.qdrant_client.scroll(
                             collection_name=self.collection_name,
-                            limit=1000,  # reasonable limit
+                            limit=top_k,  # limit to top_k results
                             with_payload=True
                         )
 
-                        # Since scroll doesn't perform semantic search, we'll return the first top_k results
+                        # Format scroll results to match search format
                         results = []
-                        for i, (point_id, payload) in enumerate(zip(scroll_result[0], scroll_result[1])):
-                            if i >= top_k:
-                                break
-                            # Create a mock result object with low similarity (since it's not real semantic search)
+                        records, next_page_offset = scroll_result
+                        for i in range(min(len(records), top_k)):
+                            record = records[i]
+                            # Create a mock result object - for scroll we don't have real scores
                             mock_result = type('MockResult', (), {
-                                'id': point_id,
-                                'payload': payload,
-                                'score': 0.1  # low score since it's not a real match
+                                'id': record.id,
+                                'payload': record.payload,
+                                'score': 0.1  # low score since it's not a real semantic match
                             })()
                             results.append(mock_result)
-                    except Exception:
+                    except Exception as e3:
                         # If all methods fail, log error and return empty results
-                        logger.error("Qdrant client does not have expected search methods")
+                        logger.error(f"Qdrant client does not have expected search methods. search error: {e}, search_points error: {e2}, scroll error: {e3}")
                         return []
 
                 # Format results to match local storage format
@@ -239,12 +241,12 @@ class VectorStore:
 
             return results
 
-    def find_similar_texts(self, query: str, top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+    async def find_similar_texts(self, query: str, top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
         """
         Find similar texts to the query string
         """
         query_embedding = get_embedding_generator().generate_embedding(query)
-        return self.find_similar(query_embedding, top_k)
+        return await self.find_similar(query_embedding, top_k)
 
     def save(self, filename: str = "vector_store.pkl"):
         """
